@@ -5,6 +5,12 @@ using namespace std;
 
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+const char* vertexShaderSource = "#version 330 core\n"
+"layout(location = 0) in vec3 aPos;\n"
+"void main()\n"
+"{\n"
+"gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
 
 int main() 
 {
@@ -46,14 +52,20 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Binds the VBO to the target buffer type(GL_ARRAY_BUFFER)
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW); //This is where actual storing of data happens in GPU
-	
-	#version 330 core
-		layout(location = 0) in vec3 aPos;
-	void main()
-	{
-		gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-	}
 
+	unsigned int vertexShader;
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	glCompileShader(vertexShader);
+
+	int success;
+	char infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "Vertex shader compilation failed:\n" << infoLog << std::endl;
+	}
 	
 	while (!glfwWindowShouldClose(window))
 	{
