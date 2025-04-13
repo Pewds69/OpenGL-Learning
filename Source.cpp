@@ -17,7 +17,7 @@ const char* fragmentShaderSource = "#version 330 core\n"
 "out vec4 fragColor; \n"
 "void main()\n"
 "{\n"
-"fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+"fragColor = vec4(1.0f, 1.0f, 0.2f, 1.0f);\n"
 //this is the color of the fragment wher first threee values are RGB and the last one is alpha(opacity)
 "}\0"; // the source code for Fragment shader stored in a string literal which will be constant throughout the program
 
@@ -49,30 +49,6 @@ int main()
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-
-	unsigned int VAO; // Create a variable VAO in CPU.
-	glGenVertexArrays(1, &VAO); //Store the unique buffer ID in VAO that we later going to bind
-
-	glBindVertexArray(VAO); // Binds the VAO to the target buffer type(GL_ARRAY_BUFFER)
-
-	float Vertices[] =
-	{
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f
-	};
-
-	unsigned int VBO; // Create a variable VBO in CPU.
-	glGenBuffers(1, &VBO); //Store the unique buffer ID in VBO that we later going to bind 
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Binds the VBO to the target buffer type(GL_ARRAY_BUFFER)
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW); //This is where actual storing of data happens in GPU
-
-	glBindVertexArray(VAO); // Bind the VAO
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // This function tells OpenGL how to interpret the vertex data
-	glEnableVertexAttribArray(0); // Enable the vertex attribute array at index 0
-
 	unsigned int vertexShader; //Declare a variable to hold Shader ID
 	vertexShader = glCreateShader(GL_VERTEX_SHADER); // GL_VERTEXT_SHADER returns the ID and stores it in vertexShader
 
@@ -102,10 +78,47 @@ int main()
 	glAttachShader(shaderProgram, fragmentShader); // Attach the fragment shader to the program
 	glLinkProgram(shaderProgram); // Link the program
 
-	
+
 
 	glDeleteShader(vertexShader); // Delete the vertex shader as it's linked to the program and no longer needed
 	glDeleteShader(fragmentShader); // Delete the fragment shader as it's linked to the program and no longer needed
+
+
+	unsigned int VAO; // Create a variable VAO in CPU.
+	glGenVertexArrays(1, &VAO); //Store the unique buffer ID in VAO that we later going to bind
+
+	glBindVertexArray(VAO); // Binds the VAO to the target buffer type(GL_ARRAY_BUFFER)
+	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+
+	float Vertices[] =
+	{
+		0.5f, 0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f
+	};
+	unsigned int indcies[] = {
+		0,1,3,
+		1,2,3
+	};
+
+	unsigned int VBO; // Create a variable VBO in CPU.
+	glGenBuffers(1, &VBO); //Store the unique buffer ID in VBO that we later going to bind 
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO); // Binds the VBO to the target buffer type(GL_ARRAY_BUFFER)
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW); //This is where actual storing of data happens in GPU
+
+	unsigned int EBO;
+	glGenBuffers(1, &EBO);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indcies), indcies, GL_STATIC_DRAW);
+
+	//glBindVertexArray(VAO); // Bind the VAO
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // This function tells OpenGL how to interpret the vertex data
+	glEnableVertexAttribArray(0); // Enable the vertex attribute array at index 0
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -118,8 +131,9 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT); // Clear the color buffer
 
 		glUseProgram(shaderProgram); // Use the program
-		//glBindVertexArray(VAO); // Bind the VAO
-		glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the triangle
+		glBindVertexArray(VAO); // Bind the VAO
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw the triangle using the EBO
+		//glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the triangle
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
